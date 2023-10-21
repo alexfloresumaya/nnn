@@ -1,20 +1,57 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useState, useEffect } from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { createStackNavigator } from "@react-navigation/stack";
+import LoginScreen from "./LoginScreen";
+import HomeScreen from "./HomeScreen";
+import AchievementsScreen from "./AchievementsScreen";
+import HistoryScreen from "./HistoryScreen";
+import { auth } from './firebaseConfig';
 
-export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
+const Stack = createStackNavigator();
+
+function LoginScreenWrapper(props) {
+  const handleLoginSuccess = () => {
+    setIsLoggedIn(true);
+  };
+
+  return <LoginScreen {...props} onLoginSuccess={handleLoginSuccess} />;
+}
+if (__DEV__) {
+  console.log('eeeeeeeeeee')
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+export default function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      setIsLoggedIn(!!user);
+    });
+
+    return () => unsubscribe(); // Desuscribirse en el cleanup
+  }, []);
+
+  return (
+    <NavigationContainer>
+      <Stack.Navigator>
+        {isLoggedIn ? (
+          // Screens for logged in users
+          <Stack.Group>
+            <Stack.Screen name="Home" options={{ headerShown: false }} component={HomeScreen} />
+            <Stack.Screen name="AchievementsScreen" options={{ headerShown: false }} component={AchievementsScreen} />
+            <Stack.Screen name="History" options={{ headerShown: false }} component={HistoryScreen} />
+          </Stack.Group>
+        ) : (
+          // Auth screens
+          <Stack.Group screenOptions={{ headerShown: false }}>
+            <Stack.Screen 
+              name="Login"
+              component={LoginScreenWrapper} 
+              options={{ headerShown: false }}
+            />
+          </Stack.Group>
+        )}
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
