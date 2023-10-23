@@ -4,6 +4,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from 'react-native-vector-icons/FontAwesome'; 
 import { Menu, Provider, IconButton, Divider } from 'react-native-paper'; // Importa componentes de React Native Paper
 import { auth } from './firebaseConfig';
+import { firebase } from './firebaseConfig';
 
 const HomeScreen = ({ navigation }) => {
   const [startDate, setStartDate] = useState(new Date());
@@ -30,6 +31,28 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
+  const [users, setUsers] = useState();
+  const todoRef = firebase.firestore().collection('usuarios');
+
+  useEffect(async ()=>{
+      todoRef
+      .onSnapshot(
+        querySnapshot => {
+          const users = []
+          querySnapshot.forEach((doc) => {
+            const { heading, text } = doc.data()
+            users.push({
+              id: doc.id,
+              heading,
+              text,
+            })
+            setUsers(users);
+          })
+        }
+      )
+      console.log(users);
+  }, [])
+
   useEffect(() => {
     const currentUser = auth.currentUser;
     if (currentUser) {
@@ -53,7 +76,6 @@ const HomeScreen = ({ navigation }) => {
 
       setElapsedTime({ days, hours, minutes, seconds });
     };
-
     const interval = setInterval(updateElapsedTime, 1000);
     return () => clearInterval(interval);
   }, [startDate]);
