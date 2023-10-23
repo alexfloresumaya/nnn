@@ -32,19 +32,20 @@ const HomeScreen = ({ navigation }) => {
   };
 
   const [users, setUsers] = useState();
-  const todoRef = firebase.firestore().collection('usuarios');
+  const todoRef = firebase.firestore().collection('todos');
 
-  useEffect(async ()=>{
+  useEffect(()=>{
       todoRef
       .onSnapshot(
         querySnapshot => {
           const users = []
-          querySnapshot.forEach((doc) => {
-            const { heading, text } = doc.data()
+           querySnapshot.forEach( (doc) => {
+            const h= doc.get('heading')
+            const t= doc.get('text')
             users.push({
               id: doc.id,
-              heading,
-              text,
+              h,
+              t,
             })
             setUsers(users);
           })
