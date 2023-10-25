@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, ImageBackground, TouchableOpacity, Button, StyleSheet } from "react-native";
+import { View, Text, ImageBackground, StyleSheet } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Provider } from 'react-native-paper'; // Importa componentes de React Native Paper
 import { auth } from '../firebase/firebaseConfig';
-import Counter from "../components/Counter"; // Importa el componente Counter
 import MenuButton from "../components/MenuButton";
 
 import { fetchLastReset } from "../firebase/firebaseFunctions";
+import EmpiezaEn from "../components/EmpiezaEn";
+import MonthProgress from "../components/ProgressBar";
+import Title from "../components/Title";
 
 const HomeScreen = ({ navigation }) => {
   const [lastReset, setLastReset] = useState(null);
@@ -139,20 +141,20 @@ const HomeScreen = ({ navigation }) => {
   return (
     <Provider>
       <ImageBackground
-        source={require("../assets/bgro.jpg")}
+        source={require("../assets/f.jpg")}
         style={styles.background}
       >
         <View style={styles.container}>
-          <Counter elapsedTime={elapsedTime} setElapsedTime={setElapsedTime} resetCounter={resetCounter} />
-
+          {/* <Title /> */}
+          <EmpiezaEn currentDate={new Date()} resetCounter={resetCounter} />
+          <MonthProgress />
           <View style={styles.buttonsContainer}>
-            <Button title="See Achievements" onPress={goToAchievements} />
+           {/*  <Button title="See Achievements" onPress={goToAchievements} />
             <View style={styles.buttonSpacing}></View>
             <Button
               title="View History"
               onPress={() => navigation.navigate("History")}
-            />
-            {userEmail && <Text>{userEmail}</Text>}
+            /> */}
           </View>
           <MenuButton handleLogout={handleLogout} userEmail={userEmail} />
         </View>
@@ -164,7 +166,7 @@ const HomeScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: "space-evenly",
     alignItems: "center",
     padding: 20,
   },
