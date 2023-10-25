@@ -1,0 +1,7 @@
+Tengo en firestore una colección de usuarios con los valores:
+-amigos (array de referencias)
+-contador
+-correo
+-nombre
+-uid
+-solicitudes_amistad (array de objetos con 'estado'y 'uid_amigo')

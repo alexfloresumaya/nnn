@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, ImageBackground, TouchableOpacity, Button, StyleSheet } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import Icon from 'react-native-vector-icons/FontAwesome'; 
-import { Menu, Provider, IconButton, Divider } from 'react-native-paper'; // Importa componentes de React Native Paper
-import { auth } from './firebaseConfig';
-import { firebase } from './firebaseConfig';
+import { Provider } from 'react-native-paper'; // Importa componentes de React Native Paper
+import { auth } from '../firebase/firebaseConfig';
+import Counter from "../components/Counter"; // Importa el componente Counter
+import MenuButton from "../components/MenuButton";
+
+import { fetchLastReset } from "../firebase/firebaseFunctions";
 
 const HomeScreen = ({ navigation }) => {
+  const [lastReset, setLastReset] = useState(null);
   const [startDate, setStartDate] = useState(new Date());
   const [elapsedTime, setElapsedTime] = useState({
     days: 0,
@@ -15,50 +18,27 @@ const HomeScreen = ({ navigation }) => {
     seconds: 0,
   });
 
-  const [menuVisible, setMenuVisible] = useState(false);
   const [userEmail, setUserEmail] = useState(""); // Estado para almacenar el correo electrónico del usuario
 
-  const handleOpenMenu = () => setMenuVisible(true);
   const handleCloseMenu = () => setMenuVisible(false);
 
   const handleLogout = async () => {
     try {
       await auth.signOut();
-      handleCloseMenu(); // Cierra el menú después de cerrar sesión
-      // También puedes agregar lógica adicional aquí, como redirigir al usuario a la pantalla de inicio de sesión.
+      handleCloseMenu();
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
     }
   };
 
-  const [users, setUsers] = useState();
-  const todoRef = firebase.firestore().collection('todos');
-
-  useEffect(()=>{
-      todoRef
-      .onSnapshot(
-        querySnapshot => {
-          const users = []
-           querySnapshot.forEach( (doc) => {
-            const h= doc.get('heading')
-            const t= doc.get('text')
-            users.push({
-              id: doc.id,
-              h,
-              t,
-            })
-            setUsers(users);
-          })
-        }
-      )
-      console.log(users);
-  }, [])
 
   useEffect(() => {
     const currentUser = auth.currentUser;
     if (currentUser) {
       setUserEmail(currentUser.email);
     }
+
+    fetchLastReset(auth);
 
     const updateElapsedTime = () => {
       const currentDate = new Date();
@@ -83,17 +63,39 @@ const HomeScreen = ({ navigation }) => {
 
   const resetCounter = async () => {
     const currentDate = new Date();
-
+  
     const elapsedTimeObj = {
       startTime: startDate.toISOString(),
       endTime: currentDate.toISOString(),
-      elapsedTime: formatElapsedTime(startDate, currentDate), // Nueva función para formatear el tiempo transcurrido
+      elapsedTime: formatElapsedTime(startDate, currentDate),
     };
-
-    await saveResetHistory(elapsedTimeObj); // Nueva función para guardar el historial
-
+  
+    await saveResetHistory(elapsedTimeObj);
+  
     setStartDate(currentDate);
   };
+ /*  const resetCounter = async () => {
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        const currentDate = new Date();
+        const elapsedTimeObj = {
+          startTime: lastReset || currentDate,
+          endTime: currentDate,
+        };
+
+        // Actualiza el último reseteo en Firestore
+        await firestore.collection("resetHistory").doc(user.uid).set({
+          lastReset: currentDate,
+        });
+
+        setLastReset(currentDate);
+        setElapsedTime(calculateElapsedTime(elapsedTimeObj));
+      }
+    } catch (error) {
+      console.error("Error resetting counter:", error);
+    }
+  }; */
 
   const formatElapsedTime = (startDate, endDate) => {
     let diffInSeconds = Math.floor((endDate - startDate) / 1000);
@@ -137,33 +139,12 @@ const HomeScreen = ({ navigation }) => {
   return (
     <Provider>
       <ImageBackground
-        source={require("./assets/bgro.jpg")}
+        source={require("../assets/bgro.jpg")}
         style={styles.background}
       >
         <View style={styles.container}>
-          <View style={styles.circleContainer}>
-            <View style={styles.row}>
-              <Text style={styles.daysText}>{elapsedTime.days}</Text>
-              <Text style={styles.dayText}>days</Text>
-            </View>
-            <View style={styles.rowBottom}>
-              <View>
-                <Text style={styles.timeText}>{elapsedTime.hours}</Text>
-                <Text style={styles.secondText}>hours</Text>
-              </View>
-              <View>
-                <Text style={styles.timeText}>{elapsedTime.minutes}</Text>
-                <Text style={styles.secondText}>minutes</Text>
-              </View>
-              <View>
-                <Text style={styles.timeText}>{elapsedTime.seconds}</Text>
-                <Text style={styles.secondText}>seconds</Text>
-              </View>
-            </View>
-            <TouchableOpacity style={styles.iconButton} onPress={resetCounter}>
-              <Icon name="repeat" size={24} color="white" />
-            </TouchableOpacity>
-          </View>
+          <Counter elapsedTime={elapsedTime} setElapsedTime={setElapsedTime} resetCounter={resetCounter} />
+
           <View style={styles.buttonsContainer}>
             <Button title="See Achievements" onPress={goToAchievements} />
             <View style={styles.buttonSpacing}></View>
@@ -173,22 +154,7 @@ const HomeScreen = ({ navigation }) => {
             />
             {userEmail && <Text>{userEmail}</Text>}
           </View>
-          <Menu
-            visible={menuVisible}
-            onDismiss={handleCloseMenu}
-            anchor={
-              <IconButton
-                icon="account"
-                size={28}
-                color="white"
-                onPress={handleOpenMenu}
-              />
-            }
-          >
-            <Menu.Item onPress={handleLogout} title="Cerrar Sesión" />
-            <Divider />
-            <Menu.Item title={userEmail} />
-          </Menu>
+          <MenuButton handleLogout={handleLogout} userEmail={userEmail} />
         </View>
       </ImageBackground>
     </Provider>
@@ -273,6 +239,17 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     bottom: 25,  // Ajusta según tus preferencias
     right: 10,  // Ajusta según tus preferencias
+},
+iconButton2: {
+  position: 'absolute',  // Posiciona el botón de forma absoluta dentro del circleContainer
+  backgroundColor: 'red',
+  justifyContent: 'center',
+  alignItems: 'center',
+  width: 50,
+  height: 50,
+  borderRadius: 25,
+  bottom: 45,  // Ajusta según tus preferencias
+  right: 40,  // Ajusta según tus preferencias
 },
 logoutButton: {
   backgroundColor: 'red',

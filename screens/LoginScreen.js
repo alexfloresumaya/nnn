@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity } from 'react-native';
-import { registerUser, loginUser } from './authFunctions';
-import { addUserDataToFirestore } from './firebaseFunctions'; // Importa la función para agregar datos a Firestore
+import { registerUser, loginUser } from '../firebase/authFunctions';
+import { addUserDataToFirestore } from '../firebase/firebaseFunctions';
 
 export default function LoginScreen({ navigation, onLoginSuccess }) {
   const [email, setEmail] = useState('');
@@ -12,9 +12,8 @@ export default function LoginScreen({ navigation, onLoginSuccess }) {
     const result = await registerUser(email, password);
     if (result.success && result.user && result.uid) {
       const uid = result.uid; // Obtener el uid del usuario registrado
-      console.log(uid);
-      const nombre = "paquito"; // Nombre del usuario
-      await addUserDataToFirestore(uid, email, nombre); // Agrega el UID, correo y nombre a Firestore
+      await addUserDataToFirestore(uid, email);
+       
       navigation.navigate('Home');
     } else {
       setMessage(result.error || 'Error desconocido al registrar el usuario.');

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-import LoginScreen from "./LoginScreen";
-import HomeScreen from "./HomeScreen";
-import AchievementsScreen from "./AchievementsScreen";
-import HistoryScreen from "./HistoryScreen";
-import { auth } from './firebaseConfig';
+import LoginScreen from "./screens/LoginScreen";
+import HomeScreen from "./screens/HomeScreen";
+import AchievementsScreen from "./screens/AchievementsScreen";
+import HistoryScreen from "./screens/HistoryScreen";
+import { auth } from './firebase/firebaseConfig';
 
 const Stack = createStackNavigator();
 
@@ -15,9 +15,6 @@ function LoginScreenWrapper(props) {
   };
 
   return <LoginScreen {...props} onLoginSuccess={handleLoginSuccess} />;
-}
-if (__DEV__) {
-  console.log('eeeeeeeeeee')
 }
 
 export default function App() {

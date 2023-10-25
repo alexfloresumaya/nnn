@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View } from 'react-native';
-import Achievements from './Achievements';
-import { getData } from './storageFunctions'; // Suponiendo que las funciones de almacenamiento estén en 'storageFunctions.js'
+import Achievements from '../components/Achievements';
+import { getData } from '../storageFunctions'; // Suponiendo que las funciones de almacenamiento estén en 'storageFunctions.js'
 
 export default function AchievementsScreen() {
   const [elapsedDays, setElapsedDays] = useState(0);
